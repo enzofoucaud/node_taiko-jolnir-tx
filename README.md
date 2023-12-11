@@ -1,4 +1,4 @@
-# avail-tx
+# taiko-jolnir-tx
 
 ## Description
 
