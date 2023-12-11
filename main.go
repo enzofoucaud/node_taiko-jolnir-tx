@@ -3,10 +3,15 @@ package main
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/big"
+	"net/http"
 	"os"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -14,9 +19,11 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/go-co-op/gocron"
 )
 
 var (
+	scheduler       = gocron.NewScheduler(time.UTC)
 	ctx             = context.Background()
 	rpc             = "https://ethereum-sepolia.publicnode.com"
 	contractApprove = common.HexToAddress("0x75F94f04d2144cB6056CCd0CFF1771573d838974")
@@ -24,26 +31,83 @@ var (
 )
 
 func main() {
-	privKey := os.Args[1]
+	scheduler.Every(1).Hours().Do(verifyNode, os.Args[1]) // nolint
+	scheduler.StartBlocking()
+}
 
+func verifyNode(privKey string) {
 	privateKey, err := crypto.HexToECDSA(privKey)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = approve(privateKey)
+	publicKey := privateKey.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		log.Fatal("Public Key Error")
+	}
+	sender := crypto.PubkeyToAddress(*publicKeyECDSA)
+
+	// http get request
+	resp, err := http.Get("https://api-sepolia.etherscan.io/api?module=account&action=txlist&page=1&offset=25&sort=desc&address=" + sender.Hex() + "&tag=latest&apikey=N8QN14DMRHVQ4FYGR37J96555T8W7S89ZQ")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	type Response struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+		Result  []struct {
+			TimeStamp string `json:"timeStamp"`
+			Hash      string `json:"hash"`
+			To        string `json:"to"`
+		} `json:"result"`
+	}
+
+	var response Response
+
+	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = depositTaikoToken(privateKey)
-	if err != nil {
-		log.Fatal(err)
+	for _, tx := range response.Result {
+		if tx.To == strings.ToLower(contractDeposit.Hex()) {
+			if tx.TimeStamp == "" {
+				fmt.Println("No timestamp, do nothing")
+				continue
+			}
+
+			timestamp, err := strconv.ParseInt(tx.TimeStamp, 10, 64)
+			if err != nil {
+				log.Fatal(err)
+			}
+			t := time.Unix(timestamp, 0)
+
+			if time.Since(t).Hours() > 3 {
+				err = approve(privKey)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				err = depositTaikoToken(privKey)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				fmt.Println("Approved and deposited")
+				break
+			} else {
+				fmt.Println("Timestamp:", t, "is less than 3 hours, do nothing")
+				break
+			}
+		}
 	}
 }
 
-func approve(privateKey *ecdsa.PrivateKey) error {
-	client, err := ethclient.Dial(rpc)
+func approve(privKey string) error {
+	privateKey, err := crypto.HexToECDSA(privKey)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -54,6 +118,11 @@ func approve(privateKey *ecdsa.PrivateKey) error {
 		return fmt.Errorf("Public Key Error")
 	}
 	sender := crypto.PubkeyToAddress(*publicKeyECDSA)
+
+	client, err := ethclient.Dial(rpc)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	nonce, err := client.PendingNonceAt(context.Background(), sender)
 	if err != nil {
@@ -108,8 +177,8 @@ func approve(privateKey *ecdsa.PrivateKey) error {
 	return nil
 }
 
-func depositTaikoToken(privateKey *ecdsa.PrivateKey) error {
-	client, err := ethclient.Dial(rpc)
+func depositTaikoToken(privKey string) error {
+	privateKey, err := crypto.HexToECDSA(privKey)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -120,6 +189,11 @@ func depositTaikoToken(privateKey *ecdsa.PrivateKey) error {
 		return fmt.Errorf("Public Key Error")
 	}
 	sender := crypto.PubkeyToAddress(*publicKeyECDSA)
+
+	client, err := ethclient.Dial(rpc)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	nonce, err := client.PendingNonceAt(context.Background(), sender)
 	if err != nil {
