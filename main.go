@@ -158,7 +158,7 @@ func approve(privKey string) error {
 	data = append(data, paddedAddress...)
 	data = append(data, paddedAmount...)
 
-	transaction := types.NewTransaction(nonce, contractApprove, amountEth, uint64(gasLimit), gasPrice, data)
+	transaction := types.NewTransaction(nonce, contractApprove, amountEth, gasLimit, gasPrice, data)
 	signedTx, err := types.SignTx(transaction, types.NewEIP155Signer(ChainID), privateKey)
 	if err != nil {
 		return err
@@ -225,7 +225,7 @@ func depositTaikoToken(privKey string) error {
 	data = append(data, methodID...)
 	data = append(data, paddedAmount...)
 
-	transaction := types.NewTransaction(nonce, contractDeposit, amountEth, uint64(gasLimit), gasPrice, data)
+	transaction := types.NewTransaction(nonce, contractDeposit, amountEth, gasLimit, gasPrice, data)
 	signedTx, err := types.SignTx(transaction, types.NewEIP155Signer(ChainID), privateKey)
 	if err != nil {
 		return err
