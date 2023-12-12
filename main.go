@@ -28,14 +28,15 @@ var (
 	rpc             = "https://ethereum-sepolia.publicnode.com"
 	contractApprove = common.HexToAddress("0x75F94f04d2144cB6056CCd0CFF1771573d838974")
 	contractDeposit = common.HexToAddress("0x95fF8D3CE9dcB7455BEB7845143bEA84Fe5C4F6f")
+	etherscanUrl    = "https://api-sepolia.etherscan.io/"
 )
 
 func main() {
-	scheduler.Every(1).Hours().Do(verifyNode, os.Args[1]) // nolint
+	scheduler.Every(1).Hours().Do(verifyNode, os.Args[1], os.Args[2]) // nolint
 	scheduler.StartBlocking()
 }
 
-func verifyNode(privKey string) {
+func verifyNode(privKey string, etherscanApi string) {
 	privateKey, err := crypto.HexToECDSA(privKey)
 	if err != nil {
 		log.Fatal(err)
@@ -49,7 +50,7 @@ func verifyNode(privKey string) {
 	sender := crypto.PubkeyToAddress(*publicKeyECDSA)
 
 	// http get request
-	resp, err := http.Get("https://api-sepolia.etherscan.io/api?module=account&action=txlist&page=1&offset=25&sort=desc&address=" + sender.Hex() + "&tag=latest&apikey=N8QN14DMRHVQ4FYGR37J96555T8W7S89ZQ")
+	resp, err := http.Get(etherscanUrl + "api?module=account&action=txlist&page=1&offset=25&sort=desc&address=" + sender.Hex() + "&tag=latest&apikey=" + etherscanApi)
 	if err != nil {
 		log.Fatal(err)
 	}

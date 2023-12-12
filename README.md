@@ -25,11 +25,11 @@ go build . -o taiko-jolnir-tx
 ### Run
 
 ```bash
-./taiko-jolnir-tx [private key]
+./taiko-jolnir-tx [private key] [etherscan api key]
 ```
 
 Example:
 
 ```bash
-./taiko-jolnir-tx abcde0abcde0abcde0abcde0abcde0abcde0abcde0abcde0abcde0abcde0abcd
+./taiko-jolnir-tx abcde0abcde0abcde0abcde0abcde0abcde0abcde0abcde0abcde0abcde0abcd XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
