@@ -15,7 +15,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -145,13 +144,8 @@ func approve(privKey string) error {
 	transferFnSignature := []byte("approve(address,uint256)")
 	hash := crypto.Keccak256Hash(transferFnSignature)
 	methodID := hash[:4]
-	fmt.Println("methodID", hexutil.Encode(methodID))
-
 	paddedAddress := common.LeftPadBytes(contractDeposit.Bytes(), 32)
-	fmt.Println("paddedAddress", hexutil.Encode(paddedAddress))
-
 	paddedAmount := common.LeftPadBytes(big.NewInt(2500000000000000000).Bytes(), 32)
-	fmt.Println("paddedAmount", hexutil.Encode(paddedAmount))
 
 	var data []byte
 	data = append(data, methodID...)
@@ -216,10 +210,7 @@ func depositTaikoToken(privKey string) error {
 	transferFnSignature := []byte("depositTaikoToken(uint256)")
 	hash := crypto.Keccak256Hash(transferFnSignature)
 	methodID := hash[:4]
-	fmt.Println("methodID", hexutil.Encode(methodID))
-
 	paddedAmount := common.LeftPadBytes(big.NewInt(2500000000000000000).Bytes(), 32)
-	fmt.Println("paddedAmount", hexutil.Encode(paddedAmount))
 
 	var data []byte
 	data = append(data, methodID...)
