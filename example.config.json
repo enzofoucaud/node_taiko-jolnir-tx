@@ -1,0 +1,12 @@
+{
+    "etherScanUrl": "https://api-sepolia.etherscan.io/",
+    "etherScanApiKey": "",
+    "taikoRpc": "https://ethereum-sepolia.publicnode.com",
+    "taikoApproveSmartContract": "0x75F94f04d2144cB6056CCd0CFF1771573d838974",
+    "taikoDepositSmartContract": "0x95fF8D3CE9dcB7455BEB7845143bEA84Fe5C4F6f",
+    "wallets": [
+        {
+            "privateKey": ""
+        }
+    ]
+}
