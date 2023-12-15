@@ -33,9 +33,3 @@ go build . -o taiko-jolnir-tx
 ```bash
 ./taiko-jolnir-tx
 ```
-
-Example:
-
-```bash
-./taiko-jolnir-tx
-```
