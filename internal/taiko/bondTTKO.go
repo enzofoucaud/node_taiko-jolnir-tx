@@ -14,6 +14,11 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
+const (
+	AMOUNT_TTKO = 2500000000000000000
+	GAS_LIMIT   = 3000000
+)
+
 var ctx = context.Background()
 
 func (t *Taiko) BondTTKO(idWallet int) error {
@@ -49,7 +54,7 @@ func (t *Taiko) approve(idWallet int) error {
 	}
 
 	amountEth := big.NewInt(0)
-	gasLimit := uint64(3000000)
+	gasLimit := uint64(GAS_LIMIT)
 	gasPrice, err := client.SuggestGasPrice(context.Background())
 	if err != nil {
 		return err
@@ -60,11 +65,10 @@ func (t *Taiko) approve(idWallet int) error {
 		return err
 	}
 
-	transferFnSignature := []byte("approve(address,uint256)")
-	hash := crypto.Keccak256Hash(transferFnSignature)
+	hash := crypto.Keccak256Hash([]byte("approve(address,uint256)"))
 	methodID := hash[:4]
 	paddedAddress := common.LeftPadBytes(t.DepositSmartContract.Bytes(), 32)
-	paddedAmount := common.LeftPadBytes(big.NewInt(2500000000000000000).Bytes(), 32)
+	paddedAmount := common.LeftPadBytes(big.NewInt(AMOUNT_TTKO).Bytes(), 32)
 
 	var data []byte
 	data = append(data, methodID...)
@@ -108,7 +112,7 @@ func (t *Taiko) depositTaikoToken(idWallet int) error {
 	}
 
 	amountEth := big.NewInt(0)
-	gasLimit := uint64(3000000)
+	gasLimit := uint64(GAS_LIMIT)
 	gasPrice, err := client.SuggestGasPrice(context.Background())
 	if err != nil {
 		return err
@@ -119,10 +123,9 @@ func (t *Taiko) depositTaikoToken(idWallet int) error {
 		return err
 	}
 
-	transferFnSignature := []byte("depositTaikoToken(uint256)")
-	hash := crypto.Keccak256Hash(transferFnSignature)
+	hash := crypto.Keccak256Hash([]byte("depositTaikoToken(uint256)"))
 	methodID := hash[:4]
-	paddedAmount := common.LeftPadBytes(big.NewInt(2500000000000000000).Bytes(), 32)
+	paddedAmount := common.LeftPadBytes(big.NewInt(AMOUNT_TTKO).Bytes(), 32)
 
 	var data []byte
 	data = append(data, methodID...)
